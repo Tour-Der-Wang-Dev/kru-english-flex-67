@@ -1,11 +1,15 @@
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Users, Clock, Award, Zap } from "lucide-react";
+import { PaymentModal } from '@/components/payment/PaymentModal';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 const coursePlans = [
   {
-    id: 'general',
+    id: 'general-english',
     name: 'General English',
     price: 390,
     period: 'เดือน',
@@ -18,13 +22,12 @@ const coursePlans = [
       'ทักษะ 4 ด้าน (ฟัง พูด อ่าน เขียน)',
       'เหมาะสำหรับชีวิตประจำวัน'
     ],
-    stripeUrl: 'https://buy.stripe.com/eVqeVe3s7fol9s46pvdby03',
     popular: false,
     icon: <Users className="w-6 h-6" />,
     color: 'from-blue-400 to-blue-600'
   },
   {
-    id: 'cefr',
+    id: 'cefr-english',
     name: 'CEFR English',
     price: 590,
     period: 'เดือน',
@@ -37,16 +40,15 @@ const coursePlans = [
       'เหมาะสำหรับงานวิชาการ',
       'ใช้ในการสอบวัดระดับ'
     ],
-    stripeUrl: 'https://buy.stripe.com/3cIcN63s7dgd33G3djdby02',
     popular: true,
     icon: <Award className="w-6 h-6" />,
     color: 'from-green-400 to-green-600'
   },
   {
-    id: 'combo',
+    id: 'combo-english',
     name: 'Combo Package',
-    price: 1500,
-    period: 'แพ็กเกจ',
+    price: 790,
+    period: 'เดือน',
     level: 'ครบทุกระดับ',
     description: 'รวมคอร์ส General และ CEFR ในแพ็กเกจเดียว',
     features: [
@@ -56,16 +58,15 @@ const coursePlans = [
       'เหมาะสำหรับพัฒนาครบด้าน',
       'คุ้มค่าที่สุด'
     ],
-    stripeUrl: 'https://buy.stripe.com/cNi6oI9Qv6RP1ZCdRXdby01',
     popular: false,
     icon: <Star className="w-6 h-6" />,
     color: 'from-purple-400 to-purple-600'
   },
   {
-    id: 'small_group',
+    id: 'small-group',
     name: 'Small Group',
-    price: 4680,
-    period: 'แพ็กเกจ',
+    price: 1490,
+    period: 'เดือน',
     level: 'ทุกระดับ',
     description: 'เรียนแบบกลุ่มย่อยเพื่อเพิ่มการปฏิสัมพันธ์',
     features: [
@@ -75,7 +76,6 @@ const coursePlans = [
       'ผ่าน Zoom หรือ In-person',
       'ความใส่ใจเป็นพิเศษ'
     ],
-    stripeUrl: 'https://buy.stripe.com/8x214o9QvgspdIk4hndby00',
     popular: false,
     icon: <Zap className="w-6 h-6" />,
     color: 'from-orange-400 to-orange-600'
@@ -83,8 +83,18 @@ const coursePlans = [
 ];
 
 export default function CoursePlans() {
-  const handlePayment = (stripeUrl: string) => {
-    window.open(stripeUrl, '_blank');
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+
+  const handlePlanSelect = (plan: any) => {
+    if (!user) {
+      setAuthModalOpen(true);
+      return;
+    }
+    setSelectedPlan(plan);
+    setPaymentModalOpen(true);
   };
 
   return (
@@ -144,9 +154,8 @@ export default function CoursePlans() {
                 </ul>
 
                 <Button 
-                  variant={plan.popular ? "hero" : "default"}
                   className="w-full mt-6"
-                  onClick={() => handlePayment(plan.stripeUrl)}
+                  onClick={() => handlePlanSelect(plan)}
                 >
                   เลือกแผนนี้
                 </Button>
@@ -162,6 +171,17 @@ export default function CoursePlans() {
           </div>
         </div>
       </div>
+      
+      <AuthModal 
+        open={authModalOpen} 
+        onOpenChange={setAuthModalOpen} 
+      />
+      
+      <PaymentModal 
+        open={paymentModalOpen}
+        onOpenChange={setPaymentModalOpen}
+        coursePlan={selectedPlan}
+      />
     </section>
   );
 }
